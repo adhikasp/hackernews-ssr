@@ -52,7 +52,7 @@ func main() {
 
 	store := persistence.NewInMemoryStore(time.Second)
 
-	r.GET("/", cache.CachePage(store, 10*time.Minute, func(c *gin.Context) {
+	r.GET("/", cache.CachePage(store, 5*time.Minute, func(c *gin.Context) {
 		var request TopRequest
 		c.Bind(&request)
 		if request.Limit == 0 {
