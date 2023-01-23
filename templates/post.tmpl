@@ -1,0 +1,21 @@
+<!doctype html>
+<html class="no-js" lang="en">
+	<head>
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+	</head>
+    <body>
+        {{ range .items }}
+            <div style="padding-left: {{ multiply .Depth 1 }}em;">
+                <h1>
+                    {{ .Title }}
+                </h1>
+                <p>{{ unescapeHtml .Text }}</p>
+                <p><a href="{{ unescapeHtml .URL }}">{{ .URL }}</a>
+                <p>By: {{ .By }}</p>
+                <hr />
+            </div>
+        {{ end }}
+    </body>
+</html>
