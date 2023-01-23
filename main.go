@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cache"
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -48,7 +50,9 @@ func main() {
 	db := initDB()
 	initTemplate(r)
 
-	r.GET("/", func(c *gin.Context) {
+	store := persistence.NewInMemoryStore(time.Second)
+
+	r.GET("/", cache.CachePage(store, 10*time.Minute, func(c *gin.Context) {
 		var request TopRequest
 		c.Bind(&request)
 		if request.Limit == 0 {
@@ -60,15 +64,18 @@ func main() {
 			*, 
 			(score - 1) / pow((EXTRACT(epoch FROM NOW() - time)/3600)+2, 1.8) AS score_top
 		FROM items
-		WHERE time > NOW() - interval '71' day AND type = 'story' AND NOT deleted
+		WHERE time > NOW() - interval '7' day AND type = 'story' AND NOT deleted
 		ORDER BY score_top DESC NULLS LAST
 		LIMIT ?
 		`, request.Limit).Find(&topPosts)
+		var lastUpdated time.Time
+		db.Raw(`SELECT max(time) FROM items;`).Find(&lastUpdated)
 		c.HTML(http.StatusOK, "top.tmpl", gin.H{
-			"posts": topPosts,
+			"posts":       topPosts,
+			"lastUpdated": lastUpdated,
 		})
-	})
-	r.GET("/item", func(c *gin.Context) {
+	}))
+	r.GET("/item", cache.CachePage(store, 10*time.Minute, func(c *gin.Context) {
 		var request ItemRequest
 		c.Bind(&request)
 
@@ -96,9 +103,10 @@ func main() {
 		ORDER BY ordercol;
 		`, request.ID, parent.Time, parent.Time).Find(&items)
 		c.HTML(http.StatusOK, "post.tmpl", gin.H{
-			"items": items,
+			"items":  items,
+			"parent": parent,
 		})
-	})
+	}))
 	r.Run(":9888")
 }
 
