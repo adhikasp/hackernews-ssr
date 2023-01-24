@@ -69,6 +69,7 @@ func main() {
 			return
 		}
 		var topPosts []TopPost
+		// TODO rewrite the index on score to include time for better optimization when fetching large time range
 		db.Raw(`
 		SELECT 
 			*, 
