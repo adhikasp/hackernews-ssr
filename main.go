@@ -38,15 +38,15 @@ type Item struct {
 }
 
 type ItemRequest struct {
-	ID int `form:"id" binding:"required"`
+	ID int `form:"id" binding:"number,gt=1"`
 }
 
 type TopRequest struct {
-	Limit int `form:"limit"`
+	Limit int `form:"limit,default=100" binding:"number,gt=0"`
 }
 
 type BestRequest struct {
-	Limit     int       `form:"limit"`
+	Limit     int       `form:"limit,default=100" binding:"number,gt=0"`
 	DateStart time.Time `form:"start" time_format:"2006-01-02" time_utc:"1"`
 	DateEnd   time.Time `form:"end" time_format:"2006-01-02" time_utc:"1"`
 }
@@ -63,9 +63,10 @@ func main() {
 
 	r.GET("/", cache.CachePageAtomic(store, 5*time.Minute, func(c *gin.Context) {
 		var request TopRequest
-		c.Bind(&request)
-		if request.Limit == 0 {
-			request.Limit = 100
+		err := c.Bind(&request)
+		if err != nil {
+			c.AbortWithError(400, err)
+			return
 		}
 		var topPosts []TopPost
 		db.Raw(`
@@ -86,7 +87,11 @@ func main() {
 	}))
 	r.GET("/item", cache.CachePageAtomic(store, 10*time.Minute, func(c *gin.Context) {
 		var request ItemRequest
-		c.Bind(&request)
+		err := c.Bind(&request)
+		if err != nil {
+			c.AbortWithError(400, err)
+			return
+		}
 
 		// Fetch parent first to get the time post
 		// This optimize the recursive child call to only query specific time chunk
@@ -120,9 +125,10 @@ func main() {
 
 	r.GET("/best", cache.CachePageAtomic(store, 5*time.Minute, func(c *gin.Context) {
 		var request BestRequest
-		c.Bind(&request)
-		if request.Limit == 0 {
-			request.Limit = 100
+		err := c.Bind(&request)
+		if err != nil {
+			c.AbortWithError(400, err)
+			return
 		}
 		if request.DateStart.IsZero() {
 			request.DateStart = time.Now().Add(-OneDay).Truncate(OneDay)
