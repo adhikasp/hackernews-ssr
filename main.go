@@ -90,18 +90,19 @@ func main() {
 		WITH RECURSIVE items_tree AS (
 			SELECT id, title, "text", "by", time, url, 0 depth
 			FROM items
-			WHERE id = ? AND time >= ?
+			WHERE id = ? AND time = ?
 			
 			UNION ALL
 			
 			SELECT items.id, items.title, items."text", items."by", items.time, items.url, items_tree.depth + 1
 			FROM items_tree
 			JOIN items ON items.parent = items_tree.id AND items.time > items_tree.time
-			WHERE items.time >= ? AND NOT items.deleted
+			WHERE items.time BETWEEN ?::date AND ?::date + interval '1' month -- Optimization assuming no new comment after 1 month
+			AND NOT items.deleted
 		) SEARCH DEPTH FIRST BY id SET ordercol
 		SELECT * FROM items_tree 
 		ORDER BY ordercol;
-		`, request.ID, parent.Time, parent.Time).Find(&items)
+		`, request.ID, parent.Time, parent.Time, parent.Time).Find(&items)
 		c.HTML(http.StatusOK, "post.tmpl", gin.H{
 			"items":  items,
 			"parent": parent,
