@@ -143,6 +143,8 @@ func main() {
 		`, request.DateStart, request.DateEnd, request.Limit).Find(&bestPosts)
 		c.HTML(http.StatusOK, "top.tmpl", gin.H{
 			"posts": bestPosts,
+			"start": request.DateStart,
+			"end":   request.DateEnd,
 		})
 	}))
 	r.Run(":9888")

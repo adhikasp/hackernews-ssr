@@ -14,7 +14,29 @@
 			Top HN Posts
 		</h1>
 		<p>This is a mirror of <a href="https://news.ycombinator.com/">Hacker News</a>. See the code at <a href="https://github.com/adhikasp/hackernews-ssr">GitHub adhikasp/hackernews-ssr</a>.</p>
-		<p>Last updated: {{ .lastUpdated.Format "2006 Jan 02, 15:04 UTC" }}
+		{{ if .lastUpdated }}
+			<p>Last updated: {{ .lastUpdated.Format "2006 Jan 02, 15:04 UTC" }}
+		{{ end }}
+		<div>
+			<form action='/' method='GET' style="display: inline; white-space: nowrap;">
+				<input type="submit" value="News">
+			</form>
+			|
+			<form action='/best' method='GET' style="display: inline; white-space: nowrap;">
+				<input type="submit" value="Best on"> 
+				<input type="date" name="start"
+				 	{{ if .start }}
+						value="{{ .start.Format "2006-01-02" }}"
+					{{ end }}
+					required> 
+				to 
+				<input type="date" name="end" 
+				 	{{ if .end }}
+						value="{{ .end.Format "2006-01-02" }}"
+					{{ end }}
+					required>
+			</form>
+		</div>
 		<ol>
 			{{ range .posts }}
 				<li><a href="/item?id={{.ID}}">{{ .Title }}</a> - score {{ .Score }} - comments {{ .Descendants }} - {{ .Time.Format "2006 Jan 02, 15:04 UTC" }}</li>
