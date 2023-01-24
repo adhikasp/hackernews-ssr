@@ -45,6 +45,14 @@ type TopRequest struct {
 	Limit int `form:"limit"`
 }
 
+type BestRequest struct {
+	Limit     int       `form:"limit"`
+	DateStart time.Time `form:"start" time_format:"2006-01-02" time_utc:"1"`
+	DateEnd   time.Time `form:"end" time_format:"2006-01-02" time_utc:"1"`
+}
+
+const OneDay = 24 * time.Hour
+
 func main() {
 	r := gin.Default()
 	db := initDB()
@@ -106,6 +114,35 @@ func main() {
 		c.HTML(http.StatusOK, "post.tmpl", gin.H{
 			"items":  items,
 			"parent": parent,
+		})
+	}))
+
+	r.GET("/best", cache.CachePage(store, 5*time.Minute, func(c *gin.Context) {
+		var request BestRequest
+		c.Bind(&request)
+		if request.Limit == 0 {
+			request.Limit = 100
+		}
+		if request.DateStart.IsZero() {
+			request.DateStart = time.Now().Add(-OneDay).Truncate(OneDay)
+		}
+		if request.DateEnd.IsZero() || request.DateEnd.Before(request.DateStart) {
+			request.DateEnd = request.DateStart.Add(OneDay).Truncate(OneDay)
+		}
+		var bestPosts []TopPost
+		db.Raw(`
+		SELECT
+			*
+		FROM items
+		WHERE 
+		    time BETWEEN ?::date AND ?::date
+		AND type = 'story' 
+		AND NOT deleted
+		ORDER BY score DESC NULLS LAST
+		LIMIT ?;
+		`, request.DateStart, request.DateEnd, request.Limit).Find(&bestPosts)
+		c.HTML(http.StatusOK, "top.tmpl", gin.H{
+			"posts": bestPosts,
 		})
 	}))
 	r.Run(":9888")
