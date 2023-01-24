@@ -22,6 +22,7 @@
                     {{ if .Parent }}
                     | <a href="item?id={{ .Parent }}">See parent post</a>
                     {{ end }}
+                    | <a href="https://news.ycombinator.com/item?id={{ .ID }}">See on Hackernews</a>
                     | {{ .Time.Format "2006 Jan 02, 15:04 UTC" }}
                 {{ end }}
                 <hr />
