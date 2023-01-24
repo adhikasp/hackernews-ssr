@@ -16,8 +16,14 @@
                     {{ .Title }}
                 </h1>
                 <p>{{ unescapeHtml .Text }}</p>
-                <p><a href="{{ unescapeHtml .URL }}">{{ .URL }}</a>
-                <p>By: {{ .By }}</p>
+                <p><a href="{{ unescapeHtml .URL }}">{{ .URL }}</a></p>
+                By: {{ .By }}
+                {{ if eq .Depth 0 }}
+                    {{ if .Parent }}
+                    | <a href="item?id={{ .Parent }}">See parent post</a>
+                    {{ end }}
+                    | {{ .Time.Format "2006 Jan 02, 15:04 UTC" }}
+                {{ end }}
                 <hr />
             </div>
         {{ end }}
