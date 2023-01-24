@@ -96,13 +96,13 @@ func main() {
 		// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
 		db.Table("items").Raw(`
 		WITH RECURSIVE items_tree AS (
-			SELECT id, title, "text", "by", time, url, 0 depth
+			SELECT id, title, REPLACE("text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", "by", time, url, 0 depth
 			FROM items
 			WHERE id = ? AND time = ?
 			
 			UNION ALL
 			
-			SELECT items.id, items.title, items."text", items."by", items.time, items.url, items_tree.depth + 1
+			SELECT items.id, items.title, REPLACE(items."text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", items."by", items.time, items.url, items_tree.depth + 1
 			FROM items_tree
 			JOIN items ON items.parent = items_tree.id AND items.time > items_tree.time
 			WHERE items.time BETWEEN ?::date AND ?::date + interval '1' month -- Optimization assuming no new comment after 1 month
