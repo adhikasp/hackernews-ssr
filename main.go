@@ -135,7 +135,7 @@ func main() {
 			*
 		FROM items
 		WHERE 
-		    time BETWEEN ?::date AND ?::date
+		    time >= ?::date AND time < ?::date + interval '1' day - interval '1' second
 		AND type = 'story' 
 		AND NOT deleted
 		ORDER BY score DESC NULLS LAST
