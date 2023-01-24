@@ -77,7 +77,7 @@ func main() {
 		LIMIT ?
 		`, request.Limit).Find(&topPosts)
 		var lastUpdated time.Time
-		db.Raw(`SELECT max(time) FROM items;`).Find(&lastUpdated)
+		db.Raw(`SELECT max(time) FROM items WHERE time >= NOW() - interval '7' day;`).Find(&lastUpdated)
 		c.HTML(http.StatusOK, "top.tmpl", gin.H{
 			"posts":       topPosts,
 			"lastUpdated": lastUpdated,
