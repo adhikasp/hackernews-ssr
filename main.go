@@ -55,6 +55,7 @@ const OneDay = 24 * time.Hour
 
 func main() {
 	r := gin.Default()
+	r.TrustedPlatform = gin.PlatformCloudflare
 	db := initDB()
 	initTemplate(r)
 
