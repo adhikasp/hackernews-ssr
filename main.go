@@ -61,15 +61,17 @@ type BestRequest struct {
 const OneDay = 24 * time.Hour
 
 func main() {
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.TrustedPlatform = gin.PlatformCloudflare
-
+	gin.SetMode(gin.ReleaseMode)
 	f, err := os.Create("access.log")
 	if err != nil {
 		panic(fmt.Sprintf("cannot access access.log file: %v", err))
 	}
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.TrustedPlatform = gin.PlatformCloudflare
+
 	r.Use(logger.SetLogger(logger.WithLogger(func(ctx *gin.Context, l zerolog.Logger) zerolog.Logger {
 		return l.Output(gin.DefaultWriter)
 	})))
