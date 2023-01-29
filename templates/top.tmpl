@@ -37,11 +37,11 @@
 					required>
 			</form>
 		</div>
-		<ol>
+		<ol start="{{ .startOffset }}">
 			{{ range .posts }}
 				<li><a href="/item?id={{.ID}}">{{ .Title }}</a> - score {{ .Score }} - comments {{ .Descendants }} - {{ .Time.Format "2006 Jan 02, 15:04 UTC" }}</li>
 			{{ end }}
 		</ol>
-		<a href="/?limit={{ add (len .posts) 100 }}">See more</a>
+		<a href="?offset={{ .nextOffset }}{{if .start}}&start={{.start.Format "2006-01-02"}}&end={{.end.Format "2006-01-02"}}{{end}}">See more</a>
 	</body>
 </html>
