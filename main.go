@@ -42,10 +42,12 @@ type ItemRequest struct {
 }
 
 type TopRequest struct {
-	Limit int `form:"limit,default=100" binding:"number,gt=0"`
+	Offset int `form:"offset,default=0" binding:"number,gte=0"`
+	Limit  int `form:"limit,default=100" binding:"number,gt=0"`
 }
 
 type BestRequest struct {
+	Offset    int       `form:"offset,default=0" binding:"number,gte=0"`
 	Limit     int       `form:"limit,default=100" binding:"number,gt=0"`
 	DateStart time.Time `form:"start" time_format:"2006-01-02" time_utc:"1"`
 	DateEnd   time.Time `form:"end" time_format:"2006-01-02" time_utc:"1"`
@@ -77,11 +79,13 @@ func main() {
 		FROM items
 		WHERE time > NOW() - interval '7' day AND type = 'story' AND NOT deleted
 		ORDER BY score_top DESC NULLS LAST
-		LIMIT ?
-		`, request.Limit).Find(&topPosts)
+		LIMIT ? OFFSET ?
+		`, request.Limit, request.Offset).Find(&topPosts)
 		var lastUpdated time.Time
 		db.Raw(`SELECT max(time) FROM items WHERE time >= NOW() - interval '7' day;`).Find(&lastUpdated)
 		c.HTML(http.StatusOK, "top.tmpl", gin.H{
+			"startOffset": request.Offset + 1,
+			"nextOffset":  request.Offset + request.Limit,
 			"posts":       topPosts,
 			"lastUpdated": lastUpdated,
 		})
@@ -110,12 +114,14 @@ func main() {
 		AND type = 'story' 
 		AND NOT deleted
 		ORDER BY score DESC NULLS LAST
-		LIMIT ?;
-		`, request.DateStart, request.DateEnd, request.Limit).Find(&bestPosts)
+		LIMIT ? OFFSET ?;
+		`, request.DateStart, request.DateEnd, request.Limit, request.Offset).Find(&bestPosts)
 		c.HTML(http.StatusOK, "top.tmpl", gin.H{
-			"posts": bestPosts,
-			"start": request.DateStart,
-			"end":   request.DateEnd,
+			"startOffset": request.Offset + 1,
+			"nextOffset":  request.Offset + request.Limit,
+			"posts":       bestPosts,
+			"start":       request.DateStart,
+			"end":         request.DateEnd,
 		})
 	}))
 
