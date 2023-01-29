@@ -3,9 +3,9 @@ module github.com/adhikasp/hackernews-ssr
 go 1.19
 
 require (
-	github.com/gin-gonic/gin v1.8.2
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/logger v0.2.5
+	github.com/gin-gonic/gin v1.8.2
 	gorm.io/driver/postgres v1.4.6
 	gorm.io/gorm v1.24.3
 )

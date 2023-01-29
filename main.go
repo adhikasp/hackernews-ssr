@@ -1,13 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
+	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -56,8 +61,19 @@ type BestRequest struct {
 const OneDay = 24 * time.Hour
 
 func main() {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
 	r.TrustedPlatform = gin.PlatformCloudflare
+
+	f, err := os.Create("access.log")
+	if err != nil {
+		panic(fmt.Sprintf("cannot access access.log file: %v", err))
+	}
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	r.Use(logger.SetLogger(logger.WithLogger(func(ctx *gin.Context, l zerolog.Logger) zerolog.Logger {
+		return l.Output(gin.DefaultWriter)
+	})))
+
 	db := initDB()
 	initTemplate(r)
 
