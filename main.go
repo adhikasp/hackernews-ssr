@@ -200,7 +200,7 @@ func initTemplate(r *gin.Engine) {
 }
 
 func initLogger(r *gin.Engine) {
-	f, err := os.Create("access.log")
+	f, err := os.OpenFile("access.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		panic(fmt.Sprintf("cannot access access.log file: %v", err))
 	}
