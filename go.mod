@@ -2,12 +2,16 @@ module github.com/adhikasp/hackernews-ssr
 
 go 1.19
 
-require github.com/gin-gonic/gin v1.8.2
+require (
+	github.com/gin-gonic/gin v1.8.2
+	github.com/gin-contrib/cache v1.2.0
+	github.com/gin-contrib/logger v0.2.5
+	gorm.io/driver/postgres v1.4.6
+	gorm.io/gorm v1.24.3
+)
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect
-	github.com/gin-contrib/cache v1.2.0 // indirect
-	github.com/gin-contrib/logger v0.2.5 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -36,6 +40,4 @@ require (
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/driver/postgres v1.4.6 // indirect
-	gorm.io/gorm v1.24.3 // indirect
 )
