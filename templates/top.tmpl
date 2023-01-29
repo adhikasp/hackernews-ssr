@@ -18,7 +18,7 @@
 		{{ if .lastUpdated }}
 			<p>Last updated: {{ .lastUpdated.Format "2006 Jan 02, 15:04 UTC" }}
 		{{ end }}
-		<div>
+		<nav>
 			<form action='/' method='GET' style="display: inline; white-space: nowrap;">
 				<input type="submit" value="News">
 			</form>
@@ -37,12 +37,31 @@
 					{{ end }}
 					required>
 			</form>
-		</div>
-		<ol start="{{ .startOffset }}">
-			{{ range .posts }}
-				<li><a href="/item?id={{.ID}}">{{ .Title }}</a> - score {{ .Score }} - comments {{ .Descendants }} - {{ .Time.Format "2006 Jan 02, 15:04 UTC" }}</li>
-			{{ end }}
-		</ol>
+		</nav>
+		<table>
+			<thead>
+				<tr>
+					<th>Rank</th>
+					<th>Title</th>
+					<th>Score</th>
+					<th>Comments</th>
+					<th class="hideable">By</th>
+					<th class="hideable">Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{ range $i, $p := .posts }}
+				<tr>
+					<td>{{ add $.startOffset $i }}</td>
+					<td><a href="/item?id={{.ID}}">{{ .Title }}</a></td>
+					<td>{{ .Score }}</td>
+					<td>{{ .Descendants }}</td>
+					<td class="hideable">{{ .By }}</td>
+					<td class="hideable">{{ .Time.Format "2006 Jan 02, 15:04 UTC" }}</td>
+				</tr>
+				{{ end }}
+			</tbody>
+		</table>
 		<a href="?offset={{ .nextOffset }}{{if .start}}&start={{.start.Format "2006-01-02"}}&end={{.end.Format "2006-01-02"}}{{end}}">See more</a>
 	</body>
 </html>

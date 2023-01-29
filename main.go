@@ -22,6 +22,7 @@ type TopPost struct {
 	Title       string
 	Score       int
 	Descendants int
+	By          string
 	Time        time.Time
 }
 
