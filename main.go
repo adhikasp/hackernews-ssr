@@ -206,14 +206,10 @@ func initLogger(r *gin.Engine) {
 	}
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	r.Use(logger.SetLogger(logger.WithLogger(func(ctx *gin.Context, l zerolog.Logger) zerolog.Logger {
-		story_id := ctx.Request.URL.Query().Get("id")
-		if story_id != "" {
-			return l.Output(gin.DefaultWriter).
-				With().
-				Str("story_id", ctx.Request.URL.Query().Get("id")).
-				Logger()
-		} else {
-			return l.Output(gin.DefaultWriter)
-		}
+		item_id := ctx.Request.URL.Query().Get("id")
+		return l.Output(gin.DefaultWriter).
+			With().
+			Str("item_id", item_id).
+			Logger()
 	})))
 }
