@@ -9,10 +9,6 @@
         <meta property="og:url" content="https://hn.adhikasp.my.id/item?id={{ .parent.ID }}" />
         <meta property="og:title" content="{{ .parent.Title }}" />
         <style>
-            pre {
-                white-space: pre-wrap;
-                overflow: auto;
-            }
             article {
                 overflow: auto;
             }
@@ -20,7 +16,7 @@
 	</head>
     <body>
         {{ range .items }}
-            <article style="padding-left: {{ multiply .Depth 1 }}em;">
+            <article style="padding-left: {{ multiply .Depth 0.4 }}em;">
                 <h1>
                     {{ .Title }}
                 </h1>

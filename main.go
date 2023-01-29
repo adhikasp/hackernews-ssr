@@ -172,8 +172,8 @@ func initTemplate(r *gin.Engine) {
 	funcMap["unescapeHtml"] = func(s string) template.HTML {
 		return template.HTML(s)
 	}
-	funcMap["multiply"] = func(a int, b int) int {
-		return a * b
+	funcMap["multiply"] = func(a int, b float64) float64 {
+		return float64(a) * b
 	}
 	funcMap["add"] = func(a int, b int) int {
 		return a + b
