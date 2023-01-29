@@ -86,6 +86,39 @@ func main() {
 			"lastUpdated": lastUpdated,
 		})
 	}))
+
+	r.GET("/best", cache.CachePageAtomic(store, 5*time.Minute, func(c *gin.Context) {
+		var request BestRequest
+		err := c.Bind(&request)
+		if err != nil {
+			c.AbortWithError(400, err)
+			return
+		}
+		if request.DateStart.IsZero() {
+			request.DateStart = time.Now().Add(-OneDay).Truncate(OneDay)
+		}
+		if request.DateEnd.IsZero() || request.DateEnd.Before(request.DateStart) {
+			request.DateEnd = request.DateStart.Add(OneDay).Truncate(OneDay)
+		}
+		var bestPosts []TopPost
+		db.Raw(`
+		SELECT
+			*
+		FROM items
+		WHERE 
+		    time >= ?::date AND time < ?::date + interval '1' day - interval '1' second
+		AND type = 'story' 
+		AND NOT deleted
+		ORDER BY score DESC NULLS LAST
+		LIMIT ?;
+		`, request.DateStart, request.DateEnd, request.Limit).Find(&bestPosts)
+		c.HTML(http.StatusOK, "top.tmpl", gin.H{
+			"posts": bestPosts,
+			"start": request.DateStart,
+			"end":   request.DateEnd,
+		})
+	}))
+
 	r.GET("/item", cache.CachePageAtomic(store, 10*time.Minute, func(c *gin.Context) {
 		var request ItemRequest
 		err := c.Bind(&request)
@@ -121,38 +154,6 @@ func main() {
 		c.HTML(http.StatusOK, "post.tmpl", gin.H{
 			"items":  items,
 			"parent": parent,
-		})
-	}))
-
-	r.GET("/best", cache.CachePageAtomic(store, 5*time.Minute, func(c *gin.Context) {
-		var request BestRequest
-		err := c.Bind(&request)
-		if err != nil {
-			c.AbortWithError(400, err)
-			return
-		}
-		if request.DateStart.IsZero() {
-			request.DateStart = time.Now().Add(-OneDay).Truncate(OneDay)
-		}
-		if request.DateEnd.IsZero() || request.DateEnd.Before(request.DateStart) {
-			request.DateEnd = request.DateStart.Add(OneDay).Truncate(OneDay)
-		}
-		var bestPosts []TopPost
-		db.Raw(`
-		SELECT
-			*
-		FROM items
-		WHERE 
-		    time >= ?::date AND time < ?::date + interval '1' day - interval '1' second
-		AND type = 'story' 
-		AND NOT deleted
-		ORDER BY score DESC NULLS LAST
-		LIMIT ?;
-		`, request.DateStart, request.DateEnd, request.Limit).Find(&bestPosts)
-		c.HTML(http.StatusOK, "top.tmpl", gin.H{
-			"posts": bestPosts,
-			"start": request.DateStart,
-			"end":   request.DateEnd,
 		})
 	}))
 	r.Run(":9888")
