@@ -195,7 +195,7 @@ func main() {
 		})
 	}))
 
-	go warmUpCache(r, []string{"/", "/best?start=2023-01-01&end=2023-01-31"})
+	go warmUpCache(r)
 	r.Run(":9888")
 }
 
@@ -238,11 +238,16 @@ func initLogger(r *gin.Engine) {
 	})))
 }
 
-func warmUpCache(r *gin.Engine, warmUpList []string) {
-	for _, path := range warmUpList {
-		rr := httptest.NewRecorder()
-		request, _ := http.NewRequest(http.MethodGet, path, nil)
-		request.Header.Add("User-Agent", "Go cache workers")
-		r.ServeHTTP(rr, request)
+func warmUpCache(r *gin.Engine) {
+	warmUpList := []string{"/", "/best?start=2023-01-01&end=2023-01-31"}
+	ticker := time.NewTicker(1 * time.Minute)
+	defer ticker.Stop()
+	for ; true; <-ticker.C {
+		for _, path := range warmUpList {
+			rr := httptest.NewRecorder()
+			request, _ := http.NewRequest(http.MethodGet, path, nil)
+			request.Header.Add("User-Agent", "Go cache workers")
+			r.ServeHTTP(rr, request)
+		}
 	}
 }
