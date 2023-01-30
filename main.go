@@ -14,6 +14,7 @@ import (
 	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	timeout "github.com/vearne/gin-timeout"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -74,6 +75,11 @@ func main() {
 	initTemplate(r)
 
 	store := persistence.NewInMemoryStore(time.Second)
+	r.Use(timeout.Timeout(
+		timeout.WithTimeout(5*time.Second),
+		timeout.WithErrorHttpCode(http.StatusRequestTimeout),
+		timeout.WithDefaultMsg(http.StatusText(http.StatusRequestTimeout)),
+	))
 
 	r.GET("/", cache.CachePageAtomic(store, 5*time.Minute, func(c *gin.Context) {
 		var request TopRequest
@@ -84,7 +90,7 @@ func main() {
 		}
 		var topPosts []TopPost
 		// TODO rewrite the index on score to include time for better optimization when fetching large time range
-		db.Raw(`
+		db.WithContext(c.Request.Context()).Raw(`
 		SELECT 
 			*, 
 			(score - 1) / pow((EXTRACT(epoch FROM NOW() - time)/3600)+2, 1.8) AS score_top
@@ -117,7 +123,7 @@ func main() {
 			request.DateEnd = request.DateStart.Add(OneDay).Truncate(OneDay)
 		}
 		var bestPosts []TopPost
-		db.Raw(`
+		db.WithContext(c.Request.Context()).Raw(`
 		SELECT
 			*
 		FROM items
@@ -148,11 +154,11 @@ func main() {
 		// Fetch parent first to get the time post
 		// This optimize the recursive child call to only query specific time chunk
 		var parent Item
-		db.Table("items").Find(&parent, Item{ID: request.ID})
+		db.WithContext(c.Request.Context()).Table("items").Find(&parent, Item{ID: request.ID})
 
 		var items []Item
 		// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
-		db.Table("items").Raw(`
+		db.WithContext(c.Request.Context()).Table("items").Raw(`
 		WITH RECURSIVE items_tree AS (
 			SELECT 
 				id, 

@@ -6,6 +6,8 @@ require (
 	github.com/gin-contrib/cache v1.2.0
 	github.com/gin-contrib/logger v0.2.5
 	github.com/gin-gonic/gin v1.8.2
+	github.com/rs/zerolog v1.28.0
+	github.com/vearne/gin-timeout v0.1.3
 	gorm.io/driver/postgres v1.4.6
 	gorm.io/gorm v1.24.3
 )
@@ -32,7 +34,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62 // indirect
-	github.com/rs/zerolog v1.28.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/net v0.5.0 // indirect
