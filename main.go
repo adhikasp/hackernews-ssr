@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"time"
 
@@ -153,19 +154,39 @@ func main() {
 		// https://www.postgresql.org/docs/current/queries-with.html#QUERIES-WITH-RECURSIVE
 		db.Table("items").Raw(`
 		WITH RECURSIVE items_tree AS (
-			SELECT id, title, REPLACE("text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", "by", time, url, parent, 0 depth
+			SELECT 
+				id, 
+				title, 
+				REPLACE("text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", 
+				"by", 
+				time, 
+				url, 
+				parent, 
+				id root_id, 
+				0 depth
 			FROM items
 			WHERE id = ? AND time = ?
 			
 			UNION ALL
 			
-			SELECT items.id, items.title, REPLACE(items."text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", items."by", items.time, items.url, items.parent, items_tree.depth + 1
+			SELECT 
+				items.id, 
+				items.title, 
+				REPLACE(items."text", 'news.ycombinator.com', 'hn.adhikasp.my.id') "text", 
+				items."by", 
+				items.time, 
+				items.url, 
+				items.parent, 
+				items_tree.root_id,
+				items_tree.depth + 1
 			FROM items_tree
 			JOIN items ON items.parent = items_tree.id AND items.time > items_tree.time
 			WHERE items.time BETWEEN ?::date AND ?::date + interval '1' month -- Optimization assuming no new comment after 1 month
 			AND NOT items.deleted
 		) SEARCH DEPTH FIRST BY id SET ordercol
-		SELECT * FROM items_tree 
+		SELECT 
+			*
+		FROM items_tree 
 		ORDER BY ordercol;
 		`, request.ID, parent.Time, parent.Time, parent.Time).Find(&items)
 		c.HTML(http.StatusOK, "post.tmpl", gin.H{
@@ -173,6 +194,8 @@ func main() {
 			"parent": parent,
 		})
 	}))
+
+	go warmUpCache(r, []string{"/", "/best?start=2023-01-01&end=2023-01-31"})
 	r.Run(":9888")
 }
 
@@ -213,4 +236,13 @@ func initLogger(r *gin.Engine) {
 			Str("item_id", item_id).
 			Logger()
 	})))
+}
+
+func warmUpCache(r *gin.Engine, warmUpList []string) {
+	for _, path := range warmUpList {
+		rr := httptest.NewRecorder()
+		request, _ := http.NewRequest(http.MethodGet, path, nil)
+		request.Header.Add("User-Agent", "Go cache workers")
+		r.ServeHTTP(rr, request)
+	}
 }
